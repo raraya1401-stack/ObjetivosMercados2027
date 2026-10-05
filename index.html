@@ -200,6 +200,9 @@ body.auth-locked .topbar, body.auth-locked .shell{display:none}
 .lg-btn{width:100%;height:50px;border:0;border-radius:999px;background:#0e8c8a;color:#0c2233;font-size:20px;cursor:pointer;margin-top:16px;font-family:var(--font-b)}
 .lg-btn:hover:not(:disabled){filter:brightness(1.07)}
 .lg-btn:disabled{opacity:.6;cursor:wait}
+.lg-steps{display:grid;gap:14px;margin:0 0 8px}
+.lg-steps div{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:#1a2b4a}
+.lg-steps b{flex:none;width:26px;height:26px;border-radius:50%;background:#0e8c8a;color:#fff;display:grid;place-items:center;font-size:13px}
 .lg-links{display:flex;justify-content:space-between;margin-top:18px}
 .lg-links button{border:0;background:none;color:#0a6f6d;font-weight:700;cursor:pointer;font-size:14px;padding:4px 0}
 .lg-links button:disabled{color:#8b96a8;cursor:default}
@@ -346,22 +349,21 @@ td.real{background:color-mix(in srgb,var(--teal) 8%,var(--surface))}
     <div class="login-body">
       <section data-step="email">
         <h1 id="lgTitle">Te damos la bienvenida</h1>
-        <p>Ingresá con tu mail de BYMA. Te enviamos un código para entrar, sin contraseña.</p>
+        <p>Ingresá con tu mail de BYMA. Te enviamos un link de acceso, sin contraseña.</p>
         <form id="fEmail" novalidate>
           <label for="lgEmail">Mail</label>
           <div class="lg-field"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg><input id="lgEmail" type="email" autocomplete="email" placeholder="nombre@byma.com.ar"></div>
-          <button class="lg-btn" type="submit">Enviarme el código</button>
+          <button class="lg-btn" type="submit">Enviarme el link de acceso</button>
         </form>
       </section>
       <section data-step="code" class="hidden">
         <h1>Revisá tu correo</h1>
         <p id="lgSent"></p>
-        <form id="fCode" novalidate>
-          <label for="lgCode">Código</label>
-          <div class="lg-field lg-code"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor"/></svg><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="000000"></div>
-          <button class="lg-btn" type="submit">Ingresar</button>
-        </form>
-        <div class="lg-links"><button type="button" id="lgResend">Reenviar código</button><button type="button" id="lgBack">Usar otro mail</button></div>
+        <div class="lg-steps">
+          <div><b>1</b><span>Abrí el mail de acceso. Si no lo ves, revisá Correo no deseado.</span></div>
+          <div><b>2</b><span>Tocá el link "Sign in" o "Ingresar". Se abre esta página y entrás directo.</span></div>
+        </div>
+        <div class="lg-links"><button type="button" id="lgResend">Reenviar link</button><button type="button" id="lgBack">Usar otro mail</button></div>
       </section>
       <section data-step="noaccess" class="hidden">
         <h1>Tu mail no tiene acceso</h1>
@@ -1403,7 +1405,7 @@ function setupLoginVisuals(){
 function loginStep(step, msg="", ok=false){
   document.querySelectorAll("#login [data-step]").forEach(x=>x.classList.toggle("hidden", x.dataset.step!==step));
   const m = $("#lgMsg"); m.textContent = msg; m.classList.toggle("ok", ok);
-  setTimeout(()=>{ (step==="email" ? $("#lgEmail") : step==="code" ? $("#lgCode") : null)?.focus(); }, 30);
+  setTimeout(()=>{ (step==="email" ? $("#lgEmail") : null)?.focus(); }, 30);
 }
 function showLogin(step="email", msg=""){
   document.body.classList.add("auth-locked"); $("#login").classList.remove("hidden"); loginStep(step, msg);
@@ -1411,14 +1413,14 @@ function showLogin(step="email", msg=""){
 function hideLogin(){ $("#login").classList.add("hidden"); document.body.classList.remove("auth-locked"); }
 function authErr(e){
   const m = String(e?.message||""), st = e?.status;
-  if(st===429 || /rate limit|too many/i.test(m)) return "Se pidieron demasiados códigos seguidos. Esperá unos minutos y volvé a intentar.";
-  if(/expired|invalid|otp/i.test(m)) return "El código no es válido o ya venció. Pedí uno nuevo.";
+  if(st===429 || /rate limit|too many/i.test(m)) return "Se pidieron demasiados links seguidos. Esperá unos minutos y volvé a intentar.";
+  if(/expired|invalid|otp/i.test(m)) return "El link venció o ya se usó. Pedí uno nuevo.";
   if(/signups not allowed/i.test(m)) return "Ese mail no está habilitado para ingresar.";
   return "No pudimos completar el ingreso. Revisá tu conexión y volvé a intentar.";
 }
 function startResendCooldown(sec=60){
   const b = $("#lgResend"); clearInterval(resendT); let t = sec; b.disabled = true;
-  const tick = ()=>{ b.textContent = t>0 ? `Reenviar código (${t} s)` : "Reenviar código"; if(t--<=0){ clearInterval(resendT); b.disabled=false; } };
+  const tick = ()=>{ b.textContent = t>0 ? `Reenviar link (${t} s)` : "Reenviar link"; if(t--<=0){ clearInterval(resendT); b.disabled=false; } };
   tick(); resendT = setInterval(tick, 1000);
 }
 async function sendCode(email){
@@ -1436,26 +1438,16 @@ $("#fEmail").addEventListener("submit", async e=>{
   btn.disabled = true; btn.textContent = "Enviando…";
   try{
     await sendCode(email); lastEmail = email;
-    $("#lgSent").textContent = `Te enviamos un código a ${email}. Escribilo acá o tocá el link del mail para entrar.`;
+    $("#lgSent").textContent = `Te enviamos un link de acceso a ${email}. Sirve una sola vez y vence en una hora.`;
     loginStep("code"); startResendCooldown();
   }catch(err){ loginStep("email", err.noAuth ? "Ese mail no está autorizado. Pedile acceso al administrador del semáforo." : authErr(err)); console.warn(err); }
-  btn.disabled = false; btn.textContent = "Enviarme el código";
+  btn.disabled = false; btn.textContent = "Enviarme el link de acceso";
 });
-$("#fCode").addEventListener("submit", async e=>{
-  e.preventDefault();
-  const token = $("#lgCode").value.replace(/\D/g,""), btn = e.target.querySelector("button");
-  if(token.length<6){ loginStep("code","Ingresá el código completo que te llegó por mail."); return; }
-  btn.disabled = true; btn.textContent = "Verificando…";
-  const {error} = await sb.auth.verifyOtp({email:lastEmail, token, type:"email"});
-  btn.disabled = false; btn.textContent = "Ingresar";
-  if(error){ loginStep("code", authErr(error)); console.warn(error); }
-});
-$("#lgCode").addEventListener("input", e=>{ e.target.value = e.target.value.replace(/\D/g,"").slice(0,10); });
 $("#lgResend").addEventListener("click", async ()=>{
-  try{ await sendCode(lastEmail); loginStep("code","Te enviamos un código nuevo.", true); startResendCooldown(); }
+  try{ await sendCode(lastEmail); loginStep("code","Te enviamos un link nuevo. Usá el último que te llegó.", true); startResendCooldown(); }
   catch(err){ loginStep("code", authErr(err)); }
 });
-$("#lgBack").addEventListener("click", ()=>{ $("#lgCode").value=""; loginStep("email"); });
+$("#lgBack").addEventListener("click", ()=>{ loginStep("email"); });
 $("#lgOther").addEventListener("click", async ()=>{ await sb.auth.signOut(); $("#lgEmail").value=""; loginStep("email"); });
 $("#logoutBtn").addEventListener("click", async ()=>{
   if(pending.size||inflight.size){ flushAll(); await new Promise(r=>setTimeout(r,800)); }
@@ -1492,7 +1484,7 @@ function afterLogout(){
   if(channel){ sb.removeChannel(channel); channel = null; }
   S.rows = new Map(); pending.clear(); S.mode = "loading";
   $("#userChip").classList.add("hidden");
-  $("#lgEmail").value = ""; $("#lgCode").value = "";
+  $("#lgEmail").value = "";
   showLogin("email");
 }
 
@@ -1501,11 +1493,14 @@ async function boot(){
   const configured = url && key && !/PEGAR_AQUI/.test(url+key);
   if(!configured || !window.supabase){ if(configured) console.warn("No se pudo cargar supabase-js"); startLocal(); return; }
   setupLoginVisuals(); showLogin("loading");
-  sb = window.supabase.createClient(url, key, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}, realtime:{params:{eventsPerSecond:10}}});
+  const hp = new URLSearchParams(location.hash.slice(1) + "&" + location.search.slice(1));
+  const linkError = hp.get("error_code") || hp.get("error");
+  if(linkError) history.replaceState(null, "", location.pathname);
+  sb = window.supabase.createClient(url, key, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, flowType:"implicit"}, realtime:{params:{eventsPerSecond:10}}});
   sb.auth.onAuthStateChange((event, session)=>{
     if(session && (event==="SIGNED_IN" || event==="INITIAL_SESSION" || event==="TOKEN_REFRESHED")) setTimeout(()=>afterLogin(session), 0);
     else if(event==="SIGNED_OUT") afterLogout();
-    else if(event==="INITIAL_SESSION" && !session) showLogin("email");
+    else if(event==="INITIAL_SESSION" && !session) showLogin("email", linkError ? (/expired/i.test(linkError) ? "El link venció o ya se usó. Pedí uno nuevo." : "No pudimos validar el link. Pedí uno nuevo.") : "");
   });
   document.addEventListener("visibilitychange", async ()=>{
     if(document.visibilityState==="visible" && S.mode==="db"){ try{ await loadAll(); render(); }catch{} }
