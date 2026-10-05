@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script>
   /* =========================================================
      CONFIGURACIÓN DE SUPABASE
@@ -17,6 +17,12 @@
      ========================================================= */
   window.SUPABASE_URL = "https://lcoorjbcwpqquyhybeop.supabase.co";
   window.SUPABASE_ANON_KEY = "sb_publishable_u4q495wpcoOiTuXYzCDzgQ_CZly45hX";
+
+  /* Imágenes de la pantalla de ingreso (subilas a la carpeta img/ del repositorio).
+     Si alguna no existe, la página usa un fondo y un logo de reemplazo. */
+  window.LOGIN_IMAGE   = "img/login.jpg";
+  window.LOGIN_CAPTION = "Floralis Genérica - Buenos Aires";
+  window.LOGO_IMAGE    = "img/logo-byma.png";
 </script>
 <style>
 :root{
@@ -165,6 +171,53 @@ tbody tr.flash td{animation:flash 1.2s ease}
 .cell-dd .chev{flex:none;color:var(--chev);opacity:.55;transition:transform .15s}
 .cell-dd:hover .chev,.cell-dd[aria-expanded="true"] .chev{opacity:1}
 .cell-dd[aria-expanded="true"]{box-shadow:inset 0 0 0 2px var(--cell-focus)}
+/* ---- login ---- */
+body.auth-locked .topbar, body.auth-locked .shell{display:none}
+.login{position:fixed;inset:0;z-index:150;display:flex;background:#06264d;color:#0f2346;overflow:auto}
+.login-art{flex:1;position:relative;min-width:0;background:
+  radial-gradient(ellipse at 40% 45%,rgba(40,200,230,.35),transparent 55%),
+  repeating-linear-gradient(0deg,rgba(90,200,255,.07) 0 1px,transparent 1px 46px),
+  repeating-linear-gradient(90deg,rgba(90,200,255,.07) 0 1px,transparent 1px 46px),
+  linear-gradient(160deg,#052149,#0a3d73 60%,#06305c);background-size:cover;background-position:right center}
+.login-cap{position:absolute;right:calc(56px + 30px);bottom:72px;color:#fff;font-weight:700;font-size:19px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.login-panel{flex:none;width:min(690px,46%);margin-left:-56px;position:relative;background:#f7f7f8;border-radius:56px 0 0 56px;display:flex;flex-direction:column;align-items:center;padding:44px 48px 36px;min-height:100%}
+.login-logo{display:flex;align-items:center;gap:14px;height:96px}
+.login-logo img{height:92px;width:auto;max-width:60vw}
+.lg-mark{display:flex;align-items:center;gap:14px;font-family:var(--font-h);color:#0f2a6b}
+.lg-mark b{font-size:44px;font-weight:700;letter-spacing:.5px}
+.lg-mark i{width:2px;height:44px;background:#9aa7c0}
+.lg-mark span{font-size:40px;font-weight:500;color:#1d3b8f}
+.login-body{width:100%;max-width:475px;margin:auto 0}
+.login-body h1{font-family:var(--font-h);font-size:30px;font-weight:600;color:#0f2346;margin:0 0 10px}
+.login-body p{margin:0 0 36px;font-size:17px;color:#1a2b4a}
+.login-body label{display:block;font-size:15px;margin:0 0 8px;color:#0f2346}
+.lg-field{display:flex;align-items:center;gap:12px;height:50px;border:1px solid #0f2346;border-radius:12px;padding:0 16px;background:#fff;margin-bottom:22px}
+.lg-field:focus-within{border-color:#0e8c8a;box-shadow:0 0 0 3px rgba(14,140,138,.18)}
+.lg-field svg{flex:none;color:#0f2346}
+.lg-field input{flex:1;border:0;outline:none;background:transparent;font-size:16px;color:#0f2346;min-width:0}
+.lg-field input::placeholder{color:#7d8798}
+.lg-code input{letter-spacing:6px;font-family:var(--font-h);font-weight:700;font-size:20px}
+.lg-btn{width:100%;height:50px;border:0;border-radius:999px;background:#0e8c8a;color:#0c2233;font-size:20px;cursor:pointer;margin-top:16px;font-family:var(--font-b)}
+.lg-btn:hover:not(:disabled){filter:brightness(1.07)}
+.lg-btn:disabled{opacity:.6;cursor:wait}
+.lg-links{display:flex;justify-content:space-between;margin-top:18px}
+.lg-links button{border:0;background:none;color:#0a6f6d;font-weight:700;cursor:pointer;font-size:14px;padding:4px 0}
+.lg-links button:disabled{color:#8b96a8;cursor:default}
+.lg-msg{min-height:22px;margin:18px 0 0!important;font-size:14px!important;color:#b42318!important}
+.lg-msg.ok{color:#0a6f6d!important}
+.login-foot{display:flex;align-items:center;gap:10px;font-family:var(--font-h);font-weight:700;color:#0f2a6b;font-size:24px}
+.login-foot small{display:block;font-family:var(--font-b);font-size:8.5px;font-weight:600;line-height:1.1;color:#1d3b8f}
+.userchip{display:flex;align-items:center;gap:10px;padding:5px 6px 5px 14px;border-radius:999px;background:rgba(255,255,255,.08);font-size:13px;white-space:nowrap}
+.userchip b{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.userchip .role{font-size:11px;color:#9fd3ff}
+.userchip button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:4px 12px;cursor:pointer;font-weight:700;font-size:12px}
+@media (max-width:900px){
+  .login-art{display:none}
+  .login-panel{width:100%;margin:0;border-radius:0;padding:28px 22px}
+  .login-body h1{font-size:25px}
+  .lg-mark b{font-size:34px}.lg-mark span{font-size:30px}.lg-mark i{height:34px}
+  .userchip b,.userchip .role{display:none}
+}
 /* ---- tooltip ---- */
 .tip{position:fixed;z-index:100;pointer-events:none;background:#1b3366;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:6px 12px;font-size:12.5px;font-weight:700;line-height:1.3;max-width:280px;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 0 18px rgba(120,170,255,.45);opacity:0;transform:translateY(-2px);transition:opacity .12s ease,transform .12s ease}
 .tip.show{opacity:1;transform:none}
@@ -286,6 +339,45 @@ td.real{background:color-mix(in srgb,var(--teal) 8%,var(--surface))}
 </style>
 </head>
 <body>
+<div class="login hidden" id="login" aria-labelledby="lgTitle">
+  <div class="login-art" id="loginArt"><span class="login-cap" id="loginCap"></span></div>
+  <div class="login-panel">
+    <div class="login-logo" id="loginLogo"></div>
+    <div class="login-body">
+      <section data-step="email">
+        <h1 id="lgTitle">Te damos la bienvenida</h1>
+        <p>Ingresá con tu mail de BYMA. Te enviamos un código para entrar, sin contraseña.</p>
+        <form id="fEmail" novalidate>
+          <label for="lgEmail">Mail</label>
+          <div class="lg-field"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg><input id="lgEmail" type="email" autocomplete="email" placeholder="nombre@byma.com.ar"></div>
+          <button class="lg-btn" type="submit">Enviarme el código</button>
+        </form>
+      </section>
+      <section data-step="code" class="hidden">
+        <h1>Revisá tu correo</h1>
+        <p id="lgSent"></p>
+        <form id="fCode" novalidate>
+          <label for="lgCode">Código</label>
+          <div class="lg-field lg-code"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor"/></svg><input id="lgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="000000"></div>
+          <button class="lg-btn" type="submit">Ingresar</button>
+        </form>
+        <div class="lg-links"><button type="button" id="lgResend">Reenviar código</button><button type="button" id="lgBack">Usar otro mail</button></div>
+      </section>
+      <section data-step="noaccess" class="hidden">
+        <h1>Tu mail no tiene acceso</h1>
+        <p id="lgNoAcc"></p>
+        <button class="lg-btn" type="button" id="lgOther">Ingresar con otro mail</button>
+      </section>
+      <section data-step="loading" class="hidden">
+        <h1>Ingresando…</h1>
+        <p>Estamos cargando los objetivos.</p>
+      </section>
+      <p class="lg-msg" id="lgMsg" role="alert"></p>
+    </div>
+    <div class="login-foot" id="loginFoot"></div>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="brand" aria-label="BYMA Objetivos">
     <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><g fill="#fff" id="ring"></g></svg>
@@ -293,6 +385,7 @@ td.real{background:color-mix(in srgb,var(--teal) 8%,var(--surface))}
   </div>
   <div class="spacer"></div>
   <span class="status local" id="status"><span class="dot"></span><span class="txt">Conectando…</span></span>
+  <div class="userchip hidden" id="userChip"><span><b id="userName"></b> <span class="role" id="userRole"></span></span><button id="logoutBtn" title="Salir de tu cuenta en este navegador">Cerrar sesión</button></div>
   <button class="iconbtn" id="themeBtn" title="Cambiar tema claro u oscuro" aria-label="Cambiar tema">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
   </button>
@@ -560,13 +653,17 @@ async function retry(fn){
   for(let i=0;i<3;i++){
     const {error, data} = await fn();
     if(!error) return data;
-    if(i===2 || (error.code && /^(42|22|23)/.test(error.code))) throw error;
+    if(i===2 || (error.code && /^(42|22|23|P0|PGRST)/.test(error.code))) throw error;
     await new Promise(r=>setTimeout(r, 500*(i+1)+Math.random()*400));
   }
 }
 function handleWriteError(e){
   console.warn(e);
-  toast("No se pudo guardar el cambio. Revisá tu conexión; se va a reintentar al reconectar.");
+  const msg = String(e?.message||"");
+  if(e?.code==="42501" || /row-level security|permission denied/i.test(msg)) toast("No tenés permiso para hacer este cambio.");
+  else if(e?.code==="P0001") toast(msg);
+  else if(e?.code==="PGRST301" || /JWT/i.test(msg)) toast("Tu sesión venció. Volvé a ingresar.");
+  else toast("No se pudo guardar el cambio. Revisá tu conexión; se va a reintentar al reconectar.");
   setStatus("error","Error al guardar");
 }
 function queuePatch(id, patch){
@@ -836,7 +933,7 @@ function renderConfig(){
     }).join("") || `<p>La lista está vacía.</p>`;
     p.querySelectorAll(".addrow input, .addrow button").forEach(x=>x.disabled=ro);
   });
-  $("#cfgBanner").innerHTML = S.canAdmin ? "" : `<div class="banner">Solo el dueño o un Editor de la página puede cambiar estas listas.</div>`;
+  $("#cfgBanner").innerHTML = S.canAdmin ? "" : `<div class="banner">Solo el administrador puede cambiar estas listas. Si necesitás agregar algo, pedíselo.</div>`;
 }
 (function renderScale(){
   $("#scale").innerHTML = [...Array(10)].map((_,i)=>{const c=semColor(i+1);return `<div style="background:${c.bg};color:${c.fg}">${i+1}</div>`}).join("");
@@ -1288,24 +1385,132 @@ function subscribe(){
       }
     });
 }
+/* ================= login ================= */
+let started = false, resendT = null, lastEmail = "";
+function brandMark(small){
+  const ring = [...Array(24)].map((_,i)=>{ const a=i/24*Math.PI*2, c=i%3===0?"#22b573":i%3===1?"#1e88e5":"#0ab0d8";
+    return `<rect x="-1.6" y="-5" width="3.2" height="7" rx="1" fill="${c}" transform="translate(${20+14*Math.cos(a)} ${20+14*Math.sin(a)}) rotate(${a*180/Math.PI+90})"/>`; }).join("");
+  const svg = `<svg width="${small?44:84}" height="${small?44:84}" viewBox="0 0 40 40" aria-hidden="true">${ring}</svg>`;
+  return small ? `${svg}<span>BYMA<small>Bolsas y Mercados<br>Argentinos</small></span>` : `<div class="lg-mark">${svg}<b>BYMA</b><i></i><span>OBJETIVOS</span></div>`;
+}
+function setupLoginVisuals(){
+  const logo = $("#loginLogo"), mark = brandMark(false);
+  if(window.LOGO_IMAGE){ const img = new Image(); img.alt = "BYMA Objetivos"; img.onload = ()=>{ logo.innerHTML=""; const w=document.createElement("div"); w.className="lg-mark"; w.appendChild(img); w.insertAdjacentHTML("beforeend","<i></i><span>OBJETIVOS</span>"); logo.appendChild(w); }; img.onerror = ()=>{ logo.innerHTML = mark; }; img.src = window.LOGO_IMAGE; logo.innerHTML = mark; }
+  else logo.innerHTML = mark;
+  $("#loginFoot").innerHTML = brandMark(true);
+  if(window.LOGIN_IMAGE){ const bg = new Image(); bg.onload = ()=>{ $("#loginArt").style.backgroundImage = `url("${window.LOGIN_IMAGE}")`; $("#loginCap").textContent = window.LOGIN_CAPTION||""; }; bg.src = window.LOGIN_IMAGE; }
+}
+function loginStep(step, msg="", ok=false){
+  document.querySelectorAll("#login [data-step]").forEach(x=>x.classList.toggle("hidden", x.dataset.step!==step));
+  const m = $("#lgMsg"); m.textContent = msg; m.classList.toggle("ok", ok);
+  setTimeout(()=>{ (step==="email" ? $("#lgEmail") : step==="code" ? $("#lgCode") : null)?.focus(); }, 30);
+}
+function showLogin(step="email", msg=""){
+  document.body.classList.add("auth-locked"); $("#login").classList.remove("hidden"); loginStep(step, msg);
+}
+function hideLogin(){ $("#login").classList.add("hidden"); document.body.classList.remove("auth-locked"); }
+function authErr(e){
+  const m = String(e?.message||""), st = e?.status;
+  if(st===429 || /rate limit|too many/i.test(m)) return "Se pidieron demasiados códigos seguidos. Esperá unos minutos y volvé a intentar.";
+  if(/expired|invalid|otp/i.test(m)) return "El código no es válido o ya venció. Pedí uno nuevo.";
+  if(/signups not allowed/i.test(m)) return "Ese mail no está habilitado para ingresar.";
+  return "No pudimos completar el ingreso. Revisá tu conexión y volvé a intentar.";
+}
+function startResendCooldown(sec=60){
+  const b = $("#lgResend"); clearInterval(resendT); let t = sec; b.disabled = true;
+  const tick = ()=>{ b.textContent = t>0 ? `Reenviar código (${t} s)` : "Reenviar código"; if(t--<=0){ clearInterval(resendT); b.disabled=false; } };
+  tick(); resendT = setInterval(tick, 1000);
+}
+async function sendCode(email){
+  const {data:allowed, error:e1} = await sb.rpc("puede_ingresar", {p_email: email});
+  if(e1) throw e1;
+  if(!allowed){ const err = new Error("no_autorizado"); err.noAuth = true; throw err; }
+  const redirect = location.origin + location.pathname;
+  const {error} = await sb.auth.signInWithOtp({email, options:{emailRedirectTo: redirect, shouldCreateUser: true}});
+  if(error) throw error;
+}
+$("#fEmail").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const email = $("#lgEmail").value.trim().toLowerCase(), btn = e.target.querySelector("button");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ loginStep("email","Ingresá un mail válido, por ejemplo nombre@byma.com.ar."); return; }
+  btn.disabled = true; btn.textContent = "Enviando…";
+  try{
+    await sendCode(email); lastEmail = email;
+    $("#lgSent").textContent = `Te enviamos un código a ${email}. Escribilo acá o tocá el link del mail para entrar.`;
+    loginStep("code"); startResendCooldown();
+  }catch(err){ loginStep("email", err.noAuth ? "Ese mail no está autorizado. Pedile acceso al administrador del semáforo." : authErr(err)); console.warn(err); }
+  btn.disabled = false; btn.textContent = "Enviarme el código";
+});
+$("#fCode").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const token = $("#lgCode").value.replace(/\D/g,""), btn = e.target.querySelector("button");
+  if(token.length<6){ loginStep("code","Ingresá el código completo que te llegó por mail."); return; }
+  btn.disabled = true; btn.textContent = "Verificando…";
+  const {error} = await sb.auth.verifyOtp({email:lastEmail, token, type:"email"});
+  btn.disabled = false; btn.textContent = "Ingresar";
+  if(error){ loginStep("code", authErr(error)); console.warn(error); }
+});
+$("#lgCode").addEventListener("input", e=>{ e.target.value = e.target.value.replace(/\D/g,"").slice(0,10); });
+$("#lgResend").addEventListener("click", async ()=>{
+  try{ await sendCode(lastEmail); loginStep("code","Te enviamos un código nuevo.", true); startResendCooldown(); }
+  catch(err){ loginStep("code", authErr(err)); }
+});
+$("#lgBack").addEventListener("click", ()=>{ $("#lgCode").value=""; loginStep("email"); });
+$("#lgOther").addEventListener("click", async ()=>{ await sb.auth.signOut(); $("#lgEmail").value=""; loginStep("email"); });
+$("#logoutBtn").addEventListener("click", async ()=>{
+  if(pending.size||inflight.size){ flushAll(); await new Promise(r=>setTimeout(r,800)); }
+  await sb.auth.signOut();
+});
+
+async function afterLogin(session){
+  if(started) return;
+  started = true; showLogin("loading");
+  try{
+    const {data, error} = await sb.rpc("mi_perfil");
+    if(error) throw error;
+    const me = Array.isArray(data) ? data[0] : data;
+    if(!me){
+      started = false;
+      $("#lgNoAcc").textContent = `El mail ${session.user.email} no está en la lista de usuarios autorizados. Pedile acceso al administrador del semáforo.`;
+      loginStep("noaccess"); return;
+    }
+    S.canAdmin = me.rol === "admin"; S.canWrite = true;
+    $("#userName").textContent = me.nombre || me.email;
+    $("#userRole").textContent = S.canAdmin ? "Administrador" : "";
+    $("#userChip").classList.remove("hidden");
+    await loadAll();
+    S.mode = "db"; online = true; $("#loading")?.remove();
+    hideLogin(); refreshStatus(); render(true); scrollToToday();
+    subscribe();
+  }catch(e){
+    console.error(e); started = false;
+    showLogin("email", "No pudimos cargar tus datos. Revisá tu conexión y volvé a ingresar.");
+  }
+}
+function afterLogout(){
+  started = false;
+  if(channel){ sb.removeChannel(channel); channel = null; }
+  S.rows = new Map(); pending.clear(); S.mode = "loading";
+  $("#userChip").classList.add("hidden");
+  $("#lgEmail").value = ""; $("#lgCode").value = "";
+  showLogin("email");
+}
+
 async function boot(){
   const url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
   const configured = url && key && !/PEGAR_AQUI/.test(url+key);
   if(!configured || !window.supabase){ if(configured) console.warn("No se pudo cargar supabase-js"); startLocal(); return; }
-  sb = window.supabase.createClient(url, key, {realtime:{params:{eventsPerSecond:10}}});
-  try{
-    await loadAll();
-    S.mode = "db"; $("#loading")?.remove(); refreshStatus(); render(true); scrollToToday();
-    subscribe();
-  }catch(e){
-    console.error(e);
-    S.mode = "db"; online = false; refreshStatus(); render(true);
-    toast("No se pudo conectar con Supabase. Revisá la URL, la clave y que las tablas existan.", null, 9000);
-  }
+  setupLoginVisuals(); showLogin("loading");
+  sb = window.supabase.createClient(url, key, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}, realtime:{params:{eventsPerSecond:10}}});
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(session && (event==="SIGNED_IN" || event==="INITIAL_SESSION" || event==="TOKEN_REFRESHED")) setTimeout(()=>afterLogin(session), 0);
+    else if(event==="SIGNED_OUT") afterLogout();
+    else if(event==="INITIAL_SESSION" && !session) showLogin("email");
+  });
   document.addEventListener("visibilitychange", async ()=>{
     if(document.visibilityState==="visible" && S.mode==="db"){ try{ await loadAll(); render(); }catch{} }
   });
-  window.addEventListener("online", ()=>{ flushAll(); });
+  window.addEventListener("online", ()=>{ if(S.mode==="db") flushAll(); });
   window.addEventListener("beforeunload", e=>{ if(pending.size||inflight.size){ flushAll(); e.preventDefault(); e.returnValue=""; } });
 }
 render(true);
