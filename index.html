@@ -292,6 +292,23 @@ td.real{background:color-mix(in srgb,var(--teal) 8%,var(--surface))}
 /* ---------- config ---------- */
 .cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:20px}
 .panel.wide{grid-column:1/-1}
+.urow{display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(170px,1fr) 190px 40px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.urow.head{font-size:12px;font-weight:700;color:var(--ink-2);border-bottom:1px solid var(--line-2);padding-bottom:8px}
+.urow input{height:38px;border:1px solid var(--trig-line);border-radius:12px;padding:0 12px;background:var(--surface);min-width:0;width:100%}
+.urow .mail{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.urow .me{margin-left:8px;font-size:11px;font-weight:800;background:var(--chev);color:#06243a;border-radius:999px;padding:1px 8px}
+.urow .dd-trigger{min-width:0;width:100%;height:38px}
+.urow .del{width:36px;height:36px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;color:var(--ink-2)}
+.urow .del:hover:not(:disabled){color:var(--danger);border-color:var(--danger)}
+.urow .del:disabled,.urow .dd-trigger:disabled{opacity:.45;cursor:not-allowed}
+.uadd{display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(170px,1fr) 190px auto;gap:8px;align-items:end;margin-top:16px}
+.uadd label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:4px}
+.uadd input{height:40px;border:1px solid var(--trig-line);border-radius:var(--r);padding:0 12px;background:var(--surface);width:100%;min-width:0}
+.uadd .dd-trigger{width:100%;min-width:0}
+.uopt{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--ink-2)}
+.roles{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 14px;font-size:12.5px;color:var(--ink-2)}
+.roles b{color:var(--ink)}
+@media (max-width:900px){.urow,.uadd{grid-template-columns:1fr 1fr}.urow.head{display:none}}
 .panel.wide .scale{max-width:620px}
 .panel{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--surface-2)}
 .panel h3{font-size:16px;font-weight:600}
@@ -487,6 +504,19 @@ td.real{background:color-mix(in srgb,var(--teal) 8%,var(--surface))}
         <p class="sub">Estas listas alimentan los desplegables de la tabla. Si renombrás un valor, se actualiza en todos los OKRs que lo usan.</p>
         <div id="cfgBanner"></div>
         <div class="cfg-grid">
+          <div class="panel wide hidden" id="usersPanel">
+            <h3>Usuarios y roles</h3>
+            <p>Solo el superusuario ve esta sección. Los cambios aplican al instante: quien pierde el acceso deja de ver los datos al recargar.</p>
+            <div class="roles"><span><b>Superusuario:</b> gestiona usuarios y roles</span><span><b>Administrador:</b> edita OKRs y las listas</span><span><b>Owner:</b> carga y edita OKRs</span></div>
+            <div id="usersList"><p>Cargando usuarios…</p></div>
+            <form class="uadd" id="userAdd" novalidate>
+              <div><label for="uMail">Mail</label><input id="uMail" type="email" placeholder="nombre@byma.com.ar" autocomplete="off"></div>
+              <div><label for="uName">Nombre y apellido</label><input id="uName" placeholder="Nombre Apellido" autocomplete="off"></div>
+              <div><label id="uRolL">Rol</label><button type="button" class="ctl dd-trigger" id="uRol" data-val="admin" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="uRolL uRol"><span class="dd-label">Administrador</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+              <button class="btn primary" type="submit">Agregar usuario</button>
+            </form>
+            <label class="uopt"><input type="checkbox" id="uAlsoOwner" checked> Sumar también su nombre a la lista de Owners de la tabla</label>
+          </div>
           <div class="panel" data-list="verticales"><h3>Verticales</h3><p>Una por cuadro de la estructura.</p><div class="items"></div>
             <form class="addrow"><input placeholder="Nueva vertical" aria-label="Nueva vertical"><button class="btn primary" type="submit">Agregar</button></form></div>
           <div class="panel" data-list="owners"><h3>Owners</h3><p>Gerentes responsables de cargar sus OKRs.</p><div class="items"></div>
@@ -1333,6 +1363,7 @@ document.querySelectorAll(".panel[data-list]").forEach(p=>{
 /* ================= tabs / theme ================= */
 document.querySelectorAll(".rail [data-tab]").forEach(b=>b.addEventListener("click", ()=>{
   S.tab = b.dataset.tab;
+  if(S.tab==="config" && S.isSuper) loadUsers();
   document.querySelectorAll(".rail [data-tab]").forEach(x=>x.setAttribute("aria-selected", x===b));
   $("#view-tabla").classList.toggle("hidden", S.tab!=="tabla");
   $("#view-config").classList.toggle("hidden", S.tab!=="config");
@@ -1393,6 +1424,83 @@ function subscribe(){
       }
     });
 }
+/* ================= usuarios (superusuario) ================= */
+const ROLE_LABEL = {superuser:"Superusuario", admin:"Administrador", owner:"Owner"};
+const ROLE_ITEMS = [{value:"superuser",label:"Superusuario",sub:"Gestiona usuarios y roles"},{value:"admin",label:"Administrador",sub:"Edita OKRs y las listas"},{value:"owner",label:"Owner",sub:"Carga y edita OKRs"}];
+const CHEV2 = '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+let USERS = [];
+function rpcErr(e){ return e?.code==="P0001" && e.message ? e.message : "No se pudo completar la acción. Revisá tu conexión y volvé a intentar."; }
+async function loadUsers(){
+  if(!S.isSuper || !sb) return;
+  const {data, error} = await sb.rpc("listar_usuarios");
+  if(error){ console.warn(error); $("#usersList").innerHTML = `<p>${esc(rpcErr(error))}</p>`; return; }
+  USERS = data || []; renderUsers();
+}
+function renderUsers(){
+  const box = $("#usersList");
+  if(!USERS.length){ box.innerHTML = "<p>No hay usuarios cargados.</p>"; return; }
+  box.innerHTML = `<div class="urow head"><span>Mail</span><span>Nombre</span><span>Rol</span><span></span></div>` + USERS.map(u=>{
+    const me = u.email === S.myEmail;
+    return `<div class="urow" data-email="${esc(u.email)}">
+      <span class="mail" title="${esc(u.email)}">${esc(u.email)}${me?'<span class="me">Vos</span>':""}</span>
+      <input value="${esc(u.nombre||"")}" data-uname aria-label="Nombre de ${esc(u.email)}" placeholder="Sin nombre">
+      <button type="button" class="ctl dd-trigger" data-urol="${esc(u.rol)}" ${me?'disabled title="No podés cambiar tu propio rol"':""} aria-haspopup="listbox" aria-expanded="false" aria-label="Rol de ${esc(u.email)}"><span class="dd-label">${ROLE_LABEL[u.rol]||u.rol}</span>${CHEV2}</button>
+      <button type="button" class="del" data-udel ${me?'disabled title="No podés eliminar tu propio usuario"':'title="Quitar acceso"'} aria-label="Quitar acceso a ${esc(u.email)}">✕</button>
+    </div>`;
+  }).join("");
+}
+async function saveUser(email, nombre, rol, quiet){
+  const {error} = await sb.rpc("guardar_usuario", {p_email:email, p_nombre:nombre, p_rol:rol});
+  if(error){ console.warn(error); toast(rpcErr(error)); await loadUsers(); return false; }
+  if(!quiet) toast("Usuario guardado.");
+  await loadUsers(); return true;
+}
+$("#usersList").addEventListener("click", async e=>{
+  const row = e.target.closest(".urow[data-email]"); if(!row) return;
+  const email = row.dataset.email, u = USERS.find(x=>x.email===email);
+  const rb = e.target.closest("[data-urol]");
+  if(rb && !rb.disabled){
+    if(rb.getAttribute("aria-expanded")==="true") return closeDD();
+    openDD(rb, {items:ROLE_ITEMS, selected:u.rol, width:240, onChange: async v=>{
+      if(v===u.rol) return;
+      rb.querySelector(".dd-label").textContent = ROLE_LABEL[v];
+      if(await saveUser(email, u.nombre||"", v, true)) toast(`${u.nombre||email} ahora es ${ROLE_LABEL[v]}.`);
+    }});
+    return;
+  }
+  if(e.target.closest("[data-udel]") && !e.target.closest("[data-udel]").disabled){
+    const ok = await confirmDlg(`¿Quitarle el acceso a ${u.nombre||email}? Va a dejar de ver y editar el semáforo.`, "Quitar acceso", true);
+    if(!ok) return;
+    const {error} = await sb.rpc("eliminar_usuario", {p_email:email});
+    if(error){ toast(rpcErr(error)); return; }
+    toast("Se quitó el acceso."); loadUsers();
+  }
+});
+$("#usersList").addEventListener("change", e=>{
+  const inp = e.target.closest("[data-uname]"); if(!inp) return;
+  const email = inp.closest(".urow").dataset.email, u = USERS.find(x=>x.email===email);
+  const nv = inp.value.trim(); if(nv === (u.nombre||"")) return;
+  saveUser(email, nv, u.rol);
+});
+$("#uRol").addEventListener("click", ()=>{
+  const b = $("#uRol"); if(b.getAttribute("aria-expanded")==="true") return closeDD();
+  openDD(b, {items:ROLE_ITEMS, selected:b.dataset.val, width:240, onChange: v=>{ b.dataset.val=v; b.querySelector(".dd-label").textContent = ROLE_LABEL[v]; }});
+});
+$("#userAdd").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const email = $("#uMail").value.trim().toLowerCase(), nombre = $("#uName").value.trim(), rol = $("#uRol").dataset.val;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast("Ingresá un mail válido."); $("#uMail").focus(); return; }
+  const exists = USERS.find(u=>u.email===email);
+  if(exists && !(await confirmDlg(`${email} ya tiene acceso como ${ROLE_LABEL[exists.rol]}. ¿Actualizar su nombre y rol?`, "Actualizar"))) return;
+  const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  const ok = await saveUser(email, nombre, rol, true);
+  btn.disabled = false;
+  if(!ok) return;
+  if($("#uAlsoOwner").checked && nombre && !S.config.owners.includes(nombre)){ S.config.owners.push(nombre); saveConfig(); render(true); }
+  toast(exists ? "Usuario actualizado." : `Se dio acceso a ${nombre||email}. Ya puede ingresar con su mail.`);
+  $("#uMail").value = ""; $("#uName").value = "";
+});
+
 /* ================= login ================= */
 let started = false, resendT = null, lastEmail = "";
 function brandMark(small){
@@ -1490,9 +1598,12 @@ async function afterLogin(session){
       $("#lgNoAcc").textContent = `El mail ${session.user.email} no está en la lista de usuarios autorizados. Pedile acceso al administrador del semáforo.`;
       loginStep("noaccess"); return;
     }
-    S.canAdmin = me.rol === "admin"; S.canWrite = true;
+    S.isSuper = me.rol === "superuser"; S.myEmail = me.email;
+    S.canAdmin = me.rol === "admin" || S.isSuper; S.canWrite = true;
+    $("#usersPanel").classList.toggle("hidden", !S.isSuper);
+    if(S.isSuper) loadUsers();
     $("#userName").textContent = me.nombre || me.email;
-    $("#userRole").textContent = S.canAdmin ? "Administrador" : "";
+    $("#userRole").textContent = ROLE_LABEL[me.rol] && me.rol!=="owner" ? ROLE_LABEL[me.rol] : "";
     $("#userChip").classList.remove("hidden");
     await loadAll();
     S.mode = "db"; online = true; $("#loading")?.remove();
@@ -1508,6 +1619,7 @@ function afterLogout(){
   if(channel){ sb.removeChannel(channel); channel = null; }
   S.rows = new Map(); pending.clear(); S.mode = "loading";
   $("#userChip").classList.add("hidden");
+  S.isSuper = false; USERS = []; $("#usersPanel").classList.add("hidden");
   $("#lgEmail").value = ""; $("#lgCode").value = "";
   showLogin("email");
 }
